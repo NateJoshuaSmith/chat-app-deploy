@@ -11,7 +11,7 @@ CORS(app)  # Enable CORS for all routes
 messages = []
 
 # Get the current directory where the app is running
-db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'app.db')
+db_path = os.path.join(os.environ.get('RAILWAY_DATA_DIR', '.'), 'app.db')
 
 # Configure the SQLite database URI
 app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{db_path}'
