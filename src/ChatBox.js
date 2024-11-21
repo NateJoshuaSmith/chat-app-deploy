@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 
 // Replace with the actual URL of your deployed backend
-const backendUrl = "https://your-backend-url.up.railway.app";
+const backendUrl = "https://chat-app-deploy-production.up.railway.app";
 
 function ChatBox() {
   const [messages, setMessages] = useState([]);
