@@ -4,7 +4,7 @@ function ChatBox() {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
   const [currentUser, setCurrentUser] = useState("JohnDoe"); // This should be dynamically set
-  const [currentUserId, setCurrentUserId] = useState(4); // Example user_id, set it to the correct ID of the logged-in user
+  const [currentUserId, setCurrentUserId] = useState(1); // Example user_id, set it to the correct ID of the logged-in user
 
   // Fetch existing messages from the Flask API when the component mounts
   useEffect(() => {

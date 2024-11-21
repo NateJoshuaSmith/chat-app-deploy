@@ -1,3 +1,5 @@
+import os
+
 from flask import Flask, jsonify, request
 from flask_cors import CORS  # Import the CORS extension
 from flask_sqlalchemy import SQLAlchemy
@@ -8,8 +10,12 @@ CORS(app)  # Enable CORS for all routes
 # In-memory store for messages
 messages = []
 
+# Get the current directory where the app is running
+db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'app.db')
+
 # Configure the SQLite database URI
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app.db'  # This will create 'app.db' file in the current directory
+app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{db_path}'
+# app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app.db'  # This will create 'app.db' file in the current directory
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False  # To avoid a warning
 
 # Initialize SQLAlchemy with the app
