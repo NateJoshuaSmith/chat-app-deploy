@@ -1,14 +1,17 @@
 import React, { useState, useEffect } from "react";
 
+// Replace with the actual URL of your deployed backend
+const backendUrl = "https://your-backend-url.up.railway.app";
+
 function ChatBox() {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
-  const [currentUser, setCurrentUser] = useState("JohnDoe"); // This should be dynamically set
+  const [currentUser, setCurrentUser] = useState("JohnDoe"); // Example, should be dynamically set
   const [currentUserId, setCurrentUserId] = useState(1); // Example user_id, set it to the correct ID of the logged-in user
 
   // Fetch existing messages from the Flask API when the component mounts
   useEffect(() => {
-    fetch("http://127.0.0.1:5000/api/messages")
+    fetch(`${backendUrl}/api/messages`)
       .then((response) => response.json())
       .then((data) => setMessages(data));
   }, []);
@@ -17,10 +20,10 @@ function ChatBox() {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    const messageData = { text: newMessage, user_id: currentUserId }; // Send user_id along with the message
+    const messageData = { text: newMessage, user_id: currentUserId };
 
     // Send the message to the Flask backend
-    fetch("http://127.0.0.1:5000/api/messages", {
+    fetch(`${backendUrl}/api/messages`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
