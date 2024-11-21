@@ -1,8 +1,8 @@
 import os
-
 from flask import Flask, jsonify, request
-from flask_cors import CORS  # Import the CORS extension
+from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
+from flask_socketio import SocketIO, send, emit
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
@@ -15,11 +15,11 @@ db_path = os.path.join(os.environ.get('RAILWAY_DATA_DIR', '.'), 'app.db')
 
 # Configure the SQLite database URI
 app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{db_path}'
-# app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app.db'  # This will create 'app.db' file in the current directory
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False  # To avoid a warning
 
-# Initialize SQLAlchemy with the app
+# Initialize SQLAlchemy and SocketIO with the app
 db = SQLAlchemy(app)
+socketio = SocketIO(app)
 
 # Define your models (tables)
 
@@ -94,80 +94,15 @@ def post_message():
     }), 201
 
 
+# WebSocket route to handle real-time messaging
+@socketio.on('message')
+def handle_message(msg):
+    print(f"Received message: {msg}")
+    # You can save the message in the database here if needed
+    # Broadcast the message to all connected clients
+    send(msg, broadcast=True)
+
+
+# Start the Flask app with SocketIO
 if __name__ == '__main__':
-    app.run(debug=True)
-
-# from flask import Flask, jsonify, request
-# from flask_cors import CORS
-# from flask_sqlalchemy import SQLAlchemy
-
-# app = Flask(__name__)
-# CORS(app)  # Enable CORS for all routes
-
-# # Configure the SQLite database URI
-# app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app.db'  # This will create 'app.db' file in the current directory
-# app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False  # To avoid a warning
-
-# # Initialize SQLAlchemy with the app
-# db = SQLAlchemy(app)
-
-# # Define your models (tables)
-# class User(db.Model):
-#     id = db.Column(db.Integer, primary_key=True)
-#     username = db.Column(db.String(80), unique=True, nullable=False)
-#     email = db.Column(db.String(120), unique=True, nullable=False)
-#     messages = db.relationship('Message', backref='sender', lazy=True)
-
-# class Message(db.Model):
-#     id = db.Column(db.Integer, primary_key=True)
-#     content = db.Column(db.String(500), nullable=False)
-#     timestamp = db.Column(db.DateTime, default=db.func.now())  # Automatically set timestamp
-#     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)  # Foreign key to the user
-
-# # Create the tables inside the application context
-# with app.app_context():
-#     db.create_all()
-
-# # Route to create a user
-# @app.route('/api/users', methods=['POST'])
-# def create_user():
-#     data = request.json
-#     new_user = User(username=data['username'], email=data['email'])
-#     db.session.add(new_user)
-#     db.session.commit()
-#     return jsonify({'id': new_user.id, 'username': new_user.username}), 201
-
-# # Route to get all messages (GET request)
-# @app.route('/api/messages', methods=['GET'])
-# def get_messages():
-#     messages = Message.query.all()
-#     result = []
-#     for message in messages:
-#         result.append({
-#             'id': message.id,
-#             'content': message.content,
-#             'timestamp': message.timestamp,
-#             'username': message.sender.username
-#         })
-#     return jsonify(result)
-
-# # Route to post a new message (POST request)
-# @app.route('/api/messages', methods=['POST'])
-# def post_message():
-#     message_data = request.json  # Get the message data
-#     if 'content' not in message_data:
-#         return jsonify({'error': 'Message content is required'}), 400
-    
-#     user = User.query.get(message_data['user_id'])
-#     if user is None:
-#         return jsonify({'error': 'User not found'}), 404
-
-#     new_message = Message(content=message_data['content'], user_id=user.id)
-#     db.session.add(new_message)
-#     db.session.commit()
-    
-#     return jsonify({'id': new_message.id, 'content': new_message.content}), 201
-
-# if __name__ == '__main__':
-#     app.run(debug=True)
-
+    socketio.run(app, debug=True, host="0.0.0.0", port=8080)  # Running the app on port 8080 for WebSocket

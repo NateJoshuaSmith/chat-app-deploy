@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 
 // Replace with the actual URL of your deployed backend
 const backendUrl = "https://chat-app-deploy-production.up.railway.app";
+const socketUrl = "wss://chat-app-deploy-production.up.railway.app:8080"; // WebSocket URL
 
 function ChatBox() {
   const [messages, setMessages] = useState([]);
@@ -9,11 +10,38 @@ function ChatBox() {
   const [currentUser, setCurrentUser] = useState("JohnDoe"); // Example, should be dynamically set
   const [currentUserId, setCurrentUserId] = useState(1); // Example user_id, set it to the correct ID of the logged-in user
 
+  // WebSocket setup
+  useEffect(() => {
+    const socket = new WebSocket(socketUrl);
+
+    // Listen for incoming WebSocket messages
+    socket.onmessage = (event) => {
+      const newMessage = JSON.parse(event.data);
+      setMessages((prevMessages) => [...prevMessages, newMessage]);
+    };
+
+    socket.onopen = () => {
+      console.log("WebSocket connected!");
+    };
+
+    socket.onerror = (error) => {
+      console.error("WebSocket error:", error);
+    };
+
+    // Cleanup on unmount
+    return () => {
+      socket.close();
+    };
+  }, []);
+
   // Fetch existing messages from the Flask API when the component mounts
   useEffect(() => {
     fetch(`${backendUrl}/api/messages`)
       .then((response) => response.json())
-      .then((data) => setMessages(data));
+      .then((data) => setMessages(data))
+      .catch((error) => {
+        console.error("Error fetching messages:", error);
+      });
   }, []);
 
   // Handle the form submit event to send a new message
@@ -32,8 +60,11 @@ function ChatBox() {
     })
       .then((response) => response.json())
       .then((data) => {
-        // Update the message list with the new message
-        setMessages([...messages, data]);
+        // Optionally, send the message via WebSocket immediately after posting
+        const socket = new WebSocket(socketUrl);
+        socket.onopen = () => {
+          socket.send(JSON.stringify(data)); // Send the new message to the WebSocket server
+        };
         setNewMessage(""); // Clear the input field after sending
       })
       .catch((error) => {
